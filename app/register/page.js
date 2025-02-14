@@ -1,10 +1,15 @@
 "use client";
 
-import { useRouter } from "next/router";
+import { registrationSchema } from "@/lib/validationSchema";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { z } from "zod";
 
 export default function Register() {
+  const router = useRouter();
+  const [formErrors, setFormErrors] = useState();
   async function handleSubmit(event) {
-    console.log("intra macar in functia asta?");
     event.preventDefault();
 
     try {
@@ -12,6 +17,7 @@ export default function Register() {
       const email = formData.get("email");
       const password = formData.get("password");
       const cpassword = formData.get("cpassword");
+      registrationSchema.parse({ email, password, cpassword });
 
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -24,9 +30,25 @@ export default function Register() {
           cpassword,
         }),
       });
-      response.status === 201 && console.log("ok");
+
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+      if (result.status === 200) {
+        router.push("/");
+      }
     } catch (e) {
-      console.error(e.message);
+      if (e instanceof z.ZodError) {
+        const newErrors = e.errors.reduce((acc, err) => {
+          acc[err.path[0]] = err.message;
+          return acc;
+        }, {});
+        setFormErrors(newErrors);
+      } else {
+        console.error(e.message);
+      }
     }
   }
   return (
@@ -38,15 +60,16 @@ export default function Register() {
           <div className="space-y-6">
             <div>
               <label className="text-gray-800 text-sm mb-2 block">
-                Email Id
+                Email address
               </label>
               <input
                 name="email"
-                type="text"
+                type="email"
                 className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
                 placeholder="Enter email"
               />
             </div>
+            <div className="text-red-500">{formErrors?.email}</div>
             <div>
               <label className="text-gray-800 text-sm mb-2 block">
                 Password
@@ -58,6 +81,7 @@ export default function Register() {
                 placeholder="Enter password"
               />
             </div>
+            <div className="text-red-500">{formErrors?.password}</div>
             <div>
               <label className="text-gray-800 text-sm mb-2 block">
                 Confirm Password
@@ -70,26 +94,7 @@ export default function Register() {
               />
             </div>
 
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 shrink-0 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label
-                htmlFor="remember-me"
-                className="text-gray-800 ml-3 block text-sm"
-              >
-                I accept the{" "}
-                <a
-                  href="javascript:void(0);"
-                  className="text-blue-600 font-semibold hover:underline ml-1"
-                >
-                  Terms and Conditions
-                </a>
-              </label>
-            </div>
+            <div className="text-red-500">{formErrors?.cpassword}</div>
           </div>
 
           <div className="!mt-8">
