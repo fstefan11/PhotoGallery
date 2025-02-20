@@ -2,6 +2,7 @@
 
 import { registrationSchema } from "@/lib/validationSchema";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
@@ -31,13 +32,23 @@ export default function Register() {
         }),
       });
 
-      const result = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-      });
-      if (result.status === 200) {
-        router.push("/");
+      if (response.status === 400) {
+        const errorMessage = await response.text();
+        setFormErrors((prevstate) => ({
+          ...prevstate,
+          register: errorMessage,
+        }));
+      }
+
+      if (response.status === 201) {
+        const result = await signIn("credentials", {
+          redirect: false,
+          email,
+          password,
+        });
+        if (result.status === 200) {
+          router.push("/");
+        }
       }
     } catch (e) {
       if (e instanceof z.ZodError) {
@@ -46,8 +57,6 @@ export default function Register() {
           return acc;
         }, {});
         setFormErrors(newErrors);
-      } else {
-        console.error(e.message);
       }
     }
   }
@@ -58,6 +67,7 @@ export default function Register() {
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-6">
+            <div className="text-red-500">{formErrors?.register}</div>
             <div>
               <label className="text-gray-800 text-sm mb-2 block">
                 Email address
@@ -107,12 +117,12 @@ export default function Register() {
           </div>
           <p className="text-gray-800 text-sm mt-6 text-center">
             Already have an account?{" "}
-            <a
-              href="javascript:void(0);"
+            <Link
+              href="/login"
               className="text-blue-600 font-semibold hover:underline ml-1"
             >
               Login here
-            </a>
+            </Link>
           </p>
         </form>
       </div>

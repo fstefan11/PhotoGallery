@@ -1,11 +1,16 @@
 "use client";
 
 import { loginSchema } from "@/lib/validationSchema";
+import { signIn } from "next-auth/react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
 import { useState } from "react";
 import { z } from "zod";
 
 export default function Login() {
   const [formErrors, setFormErrors] = useState();
+  const router = useRouter();
   async function handleSubmit(event) {
     event.preventDefault();
 
@@ -24,6 +29,21 @@ export default function Login() {
           setFormErrors(newErrors);
         }
       }
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+      console.log(result);
+      if (result.status === 200) {
+        router.push("/");
+      } else if (result.status === 401 && result.error === "No user found!") {
+        setFormErrors((prevstate) => ({
+          ...prevstate,
+          login:
+            "No account found with this email! Please sign up or try again.",
+        }));
+      }
     } catch (e) {}
   }
   return (
@@ -33,6 +53,7 @@ export default function Login() {
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-6">
+            <div className="text-red-500">{formErrors?.login}</div>
             <div>
               <label className="text-gray-800 text-sm mb-2 block">
                 Email address
@@ -69,12 +90,12 @@ export default function Login() {
           </div>
           <p className="text-gray-800 text-sm mt-6 text-center">
             Don't have an account?{" "}
-            <a
-              href="javascript:void(0);"
+            <Link
+              href="/register"
               className="text-blue-600 font-semibold hover:underline ml-1"
             >
               Register here
-            </a>
+            </Link>
           </p>
         </form>
       </div>

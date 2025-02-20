@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { dbConnect } from "@/lib/mongo";
 import { hashPassword } from "@/lib/auth";
 import { registrationSchema } from "@/lib/validationSchema";
+import { User } from "@/model/user-model";
 
 export const POST = async (request) => {
   const { email, password, cpassword } = await request.json();
@@ -28,32 +29,31 @@ export const POST = async (request) => {
     return response;
   }
 
-  if (password != cpassword)
-    return NextResponse.json(
-      { message: "Passwords do not match. Please try again." },
-      {
-        status: 400,
-      }
-    );
-
   await dbConnect();
 
-  const hashedPassword = await hashPassword(password);
+  const user = await User.findOne({ email: email });
+  if (user) {
+    return new NextResponse("User already exists!", {
+      status: 400,
+    });
+  } else {
+    const hashedPassword = await hashPassword(password);
 
-  const newUser = {
-    userName: email,
-    email: email,
-    password: hashedPassword,
-  };
-  try {
-    await createUser(newUser);
-  } catch (err) {
-    return new NextResponse(error.message, {
-      status: 500,
+    const newUser = {
+      userName: email,
+      email: email,
+      password: hashedPassword,
+    };
+    try {
+      await createUser(newUser);
+    } catch (err) {
+      return new NextResponse(error.message, {
+        status: 500,
+      });
+    }
+
+    return new NextResponse("User has been created", {
+      status: 201,
     });
   }
-
-  return new NextResponse("User has been created", {
-    status: 201,
-  });
 };
