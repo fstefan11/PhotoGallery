@@ -31,7 +31,7 @@ const handler = NextAuth({
           throw new Error("Could not log you in!");
         }
 
-        return { email: user.email };
+        return { email: user.email, username: user.username, role: user.role };
       },
     }),
   ],
