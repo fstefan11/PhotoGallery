@@ -6,12 +6,22 @@ import { CldUploadButton } from "next-cloudinary";
 
 export default function UploadImage({ children }) {
   const { data: session, status } = useSession();
-  const onSuccess = (result) => {
-    console.log(result);
+
+  if (status === "loading") return <p>Loading</p>;
+  if (!session?.user?.userName) return <p>Nu esti autentificat</p>;
+
+  const user = session?.user?.userName;
+
+  const onSuccess = async (result) => {
+    try {
+      const response = await setProfilePic(user, result.info.url);
+      console.log(response);
+      console.log(result);
+    } catch (e) {
+      console.error(e);
+    }
   };
-  const onUpload = (result) => {
-    console.log(result);
-  };
+
   return (
     <CldUploadButton
       uploadPreset="ml_default"
