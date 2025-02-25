@@ -1,22 +1,20 @@
 "use client";
 
 import { setProfilePic } from "@/lib/actions/userActions";
-import { useSession } from "next-auth/react";
+
 import { CldUploadButton } from "next-cloudinary";
 
-export default function UploadImage({ children }) {
-  const { data: session, status } = useSession();
+export default function UploadImage({ children, session, updateProfilePic }) {
+  if (!session) {
+    return <div>Error</div>;
+  }
 
-  if (status === "loading") return <p>Loading</p>;
-  if (!session?.user?.userName) return <p>Nu esti autentificat</p>;
-
-  const user = session?.user?.userName;
+  const user = session.user.userName;
 
   const onSuccess = async (result) => {
     try {
       const response = await setProfilePic(user, result.info.url);
-      console.log(response);
-      console.log(result);
+      updateProfilePic(result.info.url);
     } catch (e) {
       console.error(e);
     }
@@ -27,6 +25,7 @@ export default function UploadImage({ children }) {
       uploadPreset="ml_default"
       onSuccess={onSuccess}
       onError={(error) => console.error("Upload failed: ", error)}
+      className="w-full py-3 px-4 text-sm tracking-wider font-semibold rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
     >
       {children}
     </CldUploadButton>

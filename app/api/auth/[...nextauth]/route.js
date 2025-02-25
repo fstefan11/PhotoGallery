@@ -31,24 +31,24 @@ export const authOptions = {
           throw new Error("Could not log you in!");
         }
 
-        return { email: user.email, userName: user.userName, role: user.role };
+        return user;
       },
     }),
   ],
   callbacks: {
-    async session({ session, token }) {
-      if (token) {
-        session.user.userName = token.userName;
-        session.user.role = token.role;
-      }
-      return session;
-    },
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
         token.userName = user.userName;
       }
       return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user.userName = token.userName;
+        session.user.role = token.role;
+      }
+      return session;
     },
   },
 };
