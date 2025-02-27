@@ -5,7 +5,7 @@ import { useState } from "react";
 import Providers from "./providersComponent";
 import UploadImage from "./cloudinaryUploadComponent";
 
-export default function ProfilePicture({ session, profilePicUrl }) {
+export default function ProfilePicture({ user, profilePicUrl }) {
   const [profilePic, setProfilePic] = useState(profilePicUrl);
 
   const handleProfilePicUpdate = (profilePicUrl) => {
@@ -27,10 +27,7 @@ export default function ProfilePicture({ session, profilePicUrl }) {
       </div>
       <div className="">
         <Providers>
-          <UploadImage
-            session={session}
-            updateProfilePic={handleProfilePicUpdate}
-          >
+          <UploadImage user={user} updateProfilePic={handleProfilePicUpdate}>
             Change profile picture
           </UploadImage>
         </Providers>

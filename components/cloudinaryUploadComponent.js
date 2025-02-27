@@ -4,16 +4,16 @@ import { setProfilePic } from "@/lib/actions/userActions";
 
 import { CldUploadButton } from "next-cloudinary";
 
-export default function UploadImage({ children, session, updateProfilePic }) {
-  if (!session) {
+export default function UploadImage({ children, user, updateProfilePic }) {
+  if (!user) {
     return <div>Error</div>;
   }
 
-  const user = session.user.userName;
+  const username = user.userName;
 
   const onSuccess = async (result) => {
     try {
-      const response = await setProfilePic(user, result.info.url);
+      const response = await setProfilePic(username, result.info.url);
       updateProfilePic(result.info.url);
     } catch (e) {
       console.error(e);

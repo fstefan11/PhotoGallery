@@ -29,7 +29,7 @@ export default async function RootLayout({ children }) {
         <Providers>
           <Header />
         </Providers>
-        <div className="container mx-auto">{children}</div>
+        <div className="container mx-auto mt-20">{children}</div>
       </body>
     </html>
   );
