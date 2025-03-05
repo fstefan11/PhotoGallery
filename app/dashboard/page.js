@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { getProfilePic, getUserById } from "@/lib/actions/userActions";
-import UploadImage from "@/components/cloudinaryUploadComponent";
+import UploadImage from "@/components/cloudinaryUploadProfilePicComponent";
 import Providers from "@/components/providersComponent";
 import ProfilePicture from "@/components/profilePictureComponent";
 import { redirect } from "next/navigation";
