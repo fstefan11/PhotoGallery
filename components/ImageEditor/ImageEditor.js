@@ -15,8 +15,8 @@ if (typeof window !== "undefined") {
   require("context-filter-polyfill");
 }
 
-export const ImageEditor = () => {
-  const cropperRef = useRef(null);
+export const ImageEditor = ({ cropperRef }) => {
+  // const cropperRef = useRef(null);
   const previewRef = useRef(null);
 
   const [src, setSrc] = useState();
@@ -70,32 +70,14 @@ export const ImageEditor = () => {
     previewRef.current?.refresh();
   };
 
-  const uploadCloudinary = async () => {
-    if (cropperRef.current) {
-      const canvas = cropperRef.current.getCanvas();
-      if (canvas) {
-        canvas.toBlob(async (blob) => {
-          const formData = new FormData();
-          const buffer = Buffer.from(await blob.arrayBuffer());
-          formData.append("image", blob, "edited-image.png");
-          try {
-            const response = await uploadToCloudinary(formData);
-          } catch (e) {
-            console.error(e);
-          }
-        });
-      }
-    }
-  };
-
   const changed = Object.values(adjustments).some((el) => Math.floor(el * 100));
 
   const cropperEnabled = mode === "crop";
 
   return (
-    <div>
-      <div className={"image-editor"}>
-        <div className="image-editor__cropper !h-full !min-h-52 md:!h-[400px]">
+    <div className="h-full">
+      <div className={"image-editor flex flex-col h-full"}>
+        <div className="image-editor__cropper flex-grow">
           <Cropper
             src={src}
             ref={cropperRef}
@@ -146,12 +128,8 @@ export const ImageEditor = () => {
           onChange={setMode}
           onUpload={onUpload}
           onDownload={onDownload}
+          className={"mb-0"}
         />
-      </div>
-      <br />
-      <br />
-      <div>
-        <button onClick={uploadCloudinary}>Submit</button>
       </div>
     </div>
   );

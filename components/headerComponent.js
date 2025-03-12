@@ -20,7 +20,7 @@ export default function Header() {
   }, [session]);
 
   return (
-    <nav className="sticky top-0 bg-white">
+    <nav className="sticky top-0 bg-white z-50">
       <div className="border-b">
         <div className="container flex mx-auto py-5 justify-between">
           <div>
