@@ -7,6 +7,7 @@ import ProfilePicture from "@/components/profilePictureComponent";
 import { redirect } from "next/navigation";
 import BlueButton from "@/components/blueButtonComponent";
 import Link from "next/link";
+import { getPhotosByUsername } from "@/lib/actions/photoActions";
 
 export default async function Dashboard() {
   const session = await getServerSession(authOptions);
@@ -15,6 +16,8 @@ export default async function Dashboard() {
   }
   const user = await getUserById(session.user.id);
   const profilePic = user.profilePic;
+  const photos = await getPhotosByUsername(user.userName);
+
   return (
     <div>
       <div className="text-3xl">My account</div>
@@ -46,6 +49,19 @@ export default async function Dashboard() {
       <Link href={"/dashboard/uploadimage"}>
         <BlueButton>Upload image</BlueButton>
       </Link>
+      <br />
+      <br />
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {photos.map((photo) => (
+          <Link href={"/dashboard/editimage/" + photo.id} key={photo.id}>
+            <img
+              className="h-[500px] w-full object-cover rounded-lg transition-transform duration-300 ease-in-out lg:hover:scale-105 lg:hover:brightness-75"
+              src={photo.url}
+              alt=""
+            />
+          </Link>
+        ))}
+      </div>
       <br />
       <br />
     </div>

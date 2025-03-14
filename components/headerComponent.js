@@ -34,7 +34,7 @@ export default function Header() {
             <li>Categories</li>
             <li>Users</li>
             <li>
-              {status != "authenticated" ? (
+              {!user ? (
                 <Link href={"/login"}>Log In</Link>
               ) : (
                 <button onClick={handleLogout}>Logout</button>

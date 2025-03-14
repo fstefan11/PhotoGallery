@@ -22,6 +22,11 @@ const photoSchema = new Schema(
       required: true,
       type: String,
     },
+    isPublic: {
+      required: true,
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true }
 );

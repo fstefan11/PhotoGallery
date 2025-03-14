@@ -1,17 +1,17 @@
 "use client";
 
-import { uploadToCloudinary } from "@/lib/actions/cloudinaryActions";
 import { ImageEditor } from "./ImageEditor/ImageEditor";
 import { useRef, useState } from "react";
 import BlueButton from "./blueButtonComponent";
-import ClipLoader from "react-spinners/ClipLoader";
 import { addPhoto } from "@/lib/actions/photoActions";
 import { toast, ToastContainer, Bounce } from "react-toastify";
 import LoadingModal from "./loadingModalComponent";
+import { useRouter } from "next/navigation";
 
 export default function ImageEditorComponent({ img }) {
   const cropperRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -24,9 +24,8 @@ export default function ImageEditorComponent({ img }) {
           const buffer = Buffer.from(await blob.arrayBuffer());
           formData.append("image", blob);
           try {
-            console.log("intru aici");
             const response = await addPhoto(formData);
-            console.log(response);
+            router.push("/dashboard");
           } catch (e) {
             console.error(e);
           } finally {
@@ -68,6 +67,17 @@ export default function ImageEditorComponent({ img }) {
                 placeholder="Enter Description"
                 className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
               />
+            </div>
+            <div className="w-full mb-6 flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="private"
+                name="private"
+                className="w-5 h-5"
+              />
+              <label htmlFor="private" className="text-gray-800">
+                Private
+              </label>
             </div>
           </div>
           <button type="submit">
