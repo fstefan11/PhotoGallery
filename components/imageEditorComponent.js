@@ -68,17 +68,6 @@ export default function ImageEditorComponent({ img }) {
                 className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
               />
             </div>
-            <div className="w-full mb-6 flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="private"
-                name="private"
-                className="w-5 h-5"
-              />
-              <label htmlFor="private" className="text-gray-800">
-                Private
-              </label>
-            </div>
           </div>
           <button type="submit">
             <BlueButton>
