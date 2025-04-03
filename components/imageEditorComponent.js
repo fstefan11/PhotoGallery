@@ -7,38 +7,62 @@ import { addPhoto } from "@/lib/actions/photoActions";
 import { toast, ToastContainer, Bounce } from "react-toastify";
 import LoadingModal from "./loadingModalComponent";
 import { useRouter } from "next/navigation";
+import { postSchema } from "@/lib/validationSchema";
+import { z } from "zod";
 
 export default function ImageEditorComponent({ img }) {
   const cropperRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState();
   const router = useRouter();
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
-    if (cropperRef.current) {
-      const formData = new FormData(event.target);
-      const canvas = cropperRef.current.getCanvas();
-      if (canvas) {
-        setLoading(true);
-        canvas.toBlob(async (blob) => {
-          const buffer = Buffer.from(await blob.arrayBuffer());
-          formData.append("image", blob);
-          try {
-            const response = await addPhoto(formData);
-            router.push("/dashboard");
-          } catch (e) {
-            console.error(e);
-          } finally {
-            setLoading(false);
-          }
+    try {
+      event.preventDefault();
+
+      if (cropperRef.current) {
+        const formData = new FormData(event.target);
+        postSchema.parse({
+          title: formData.get("title"),
+          description: formData.get("description"),
         });
+        const canvas = cropperRef.current.getCanvas();
+        if (canvas) {
+          setLoading(true);
+          canvas.toBlob(async (blob) => {
+            const buffer = Buffer.from(await blob.arrayBuffer());
+            formData.append("image", blob);
+            try {
+              const response = await addPhoto(formData);
+              if (!response.success) {
+                toast.error("Failed to upload photo.");
+              } else {
+                router.push("/dashboard");
+              }
+            } catch (e) {
+              console.error(e);
+            } finally {
+              setLoading(false);
+            }
+          });
+        } else {
+          toast.error("Please make sure you upload an image first.");
+        }
       } else {
-        toast.error("Please make sure you upload an image first.");
+        toast.error("Error on submitting form");
       }
-    } else {
-      toast.error("Error on submitting form");
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        console.log(e);
+        const errors = e.errors.reduce((acc, err) => {
+          acc[err.path[0]] = err.message;
+          return acc;
+        }, {});
+        setFormErrors(errors);
+      }
     }
   };
+  console.log(formErrors);
 
   return (
     <div>
@@ -51,6 +75,7 @@ export default function ImageEditorComponent({ img }) {
         <form onSubmit={handleSubmit} className="xl:flex-grow">
           <div>
             <div className="w-full mb-6">
+              <div className="text-red-500 text-base">{formErrors?.title}</div>
               <label className="block mb-2">Title</label>
               <input
                 name="title"
@@ -60,6 +85,9 @@ export default function ImageEditorComponent({ img }) {
               />
             </div>
             <div className="w-full mb-6">
+              <div className="text-red-500 text-base">
+                {formErrors?.description}
+              </div>
               <label className="block mb-2">Description</label>
               <textarea
                 name="description"

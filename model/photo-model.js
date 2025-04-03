@@ -20,7 +20,8 @@ const photoSchema = new Schema(
     },
     userId: {
       required: true,
-      type: String,
+      type: mongoose.Schema.Types.ObjectID,
+      ref: "User",
     },
     isPublic: {
       required: true,

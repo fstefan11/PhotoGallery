@@ -8,7 +8,7 @@ import {
   editImageById,
   getPhotoById,
 } from "@/lib/actions/photoActions";
-import { editPostSchema } from "@/lib/validationSchema";
+import { postSchema } from "@/lib/validationSchema";
 import React, { useEffect, useState } from "react";
 import { Bounce, toast, ToastContainer } from "react-toastify";
 import { z } from "zod";
@@ -20,7 +20,6 @@ export default function EditImage({ params }) {
   const [loading, setLoading] = useState(true);
   const [formPending, setFormPending] = useState(false);
   const [formErrors, setFormErrors] = useState();
-  const [error, setError] = useState(null);
 
   const handleEdit = async (event) => {
     setFormErrors();
@@ -35,7 +34,7 @@ export default function EditImage({ params }) {
       return;
     }
     try {
-      editPostSchema.parse({ title, description });
+      postSchema.parse({ title, description });
       const data = {
         title: formData.get("title"),
         description: formData.get("description"),
@@ -48,13 +47,12 @@ export default function EditImage({ params }) {
         setError("Image edit failed");
       }
     } catch (e) {
-      setError(e);
+      console.log(e);
       if (e instanceof z.ZodError) {
         const errors = e.errors.reduce((acc, err) => {
           acc[err.path[0]] = err.message;
           return acc;
         }, {});
-        console.log(e.errors);
         setFormErrors(errors);
 
         setFormPending(false);
