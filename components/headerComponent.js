@@ -30,8 +30,7 @@ export default function Header() {
             {status === "authenticated" && user?.role === "user" && (
               <Link href={"/dashboard"}>My Account</Link>
             )}
-            <li>Photos</li>
-            <li>Categories</li>
+            <Link href={"/photos"}>Photos</Link>
             <li>Users</li>
             <li>
               {!user ? (
