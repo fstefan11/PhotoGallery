@@ -43,8 +43,15 @@ export const authOptions = {
       return token;
     },
     async session({ session, token }) {
+      await dbConnect();
+      const user = await User.findOne({ email: session.user.email });
+      if (!user) {
+        throw new Error("User no longer exists");
+      }
       if (token) {
         session.user.id = token.id;
+        session.user.userName = user.userName;
+        session.user.profilePic = user.profilePic;
       }
       return session;
     },

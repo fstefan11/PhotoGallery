@@ -39,7 +39,7 @@ export default async function Home() {
           </div>
           <div className="relative h-[400px]">
             <img
-              src="./landscape.jpg"
+              src="/landscape.jpg"
               alt="Landscape"
               className="rounded-lg shadow-xl object-cover w-full h-full"
             />

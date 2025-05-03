@@ -18,6 +18,7 @@
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.5.1",
     "context-filter-polyfill": "^0.3.22",
+    "framer-motion": "^12.8.0",
     "lucide-react": "^0.487.0",
     "mongodb": "^6.13.1",
     "mongoose": "^8.10.0",

@@ -1,8 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { getProfilePic, getUserById } from "@/lib/actions/userActions";
-import UploadImage from "@/components/cloudinaryUploadProfilePicComponent";
-import Providers from "@/components/providersComponent";
 import ProfilePicture from "@/components/profilePictureComponent";
 import { redirect } from "next/navigation";
 import BlueButton from "@/components/blueButtonComponent";
@@ -11,12 +9,17 @@ import { getPhotosByUsername } from "@/lib/actions/photoActions";
 
 export default async function Dashboard() {
   const session = await getServerSession(authOptions);
+  console.log(session);
   if (!session) {
     redirect("/login");
   }
   const user = await getUserById(session.user.id);
   const profilePic = user.profilePic;
-  const photos = await getPhotosByUsername(user.userName);
+  const result = await getPhotosByUsername(user.userName);
+  const photos = result.photos;
+  if (!result.success) {
+    redirect("/error");
+  }
 
   return (
     <div>

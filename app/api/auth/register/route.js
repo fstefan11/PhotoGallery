@@ -8,10 +8,10 @@ import { registrationSchema } from "@/lib/validationSchema";
 import { User } from "@/model/user-model";
 
 export const POST = async (request) => {
-  const { email, password, cpassword } = await request.json();
+  const { email, username, password, cpassword } = await request.json();
 
   try {
-    registrationSchema.parse({ email, password, cpassword });
+    registrationSchema.parse({ email, username, password, cpassword });
   } catch (e) {
     const errors = e.errors.reduce((acc, err) => {
       acc[err.path[0]] = err.message;
@@ -31,23 +31,25 @@ export const POST = async (request) => {
 
   await dbConnect();
 
-  const user = await User.findOne({ email: email });
+  const user = await User.findOne({ $or: [{ email }, { userName: username }] });
   if (user) {
-    return new NextResponse("User already exists!", {
+    const conflictedField = user.email === email ? "Email" : "Username";
+    return new NextResponse(`${conflictedField} already exists!`, {
       status: 400,
     });
   } else {
     const hashedPassword = await hashPassword(password);
 
     const newUser = {
-      userName: email,
+      userName: username,
       email: email,
       password: hashedPassword,
     };
     try {
       await createUser(newUser);
     } catch (err) {
-      return new NextResponse(error.message, {
+      console.log(err.message);
+      return new NextResponse(err.message, {
         status: 500,
       });
     }
