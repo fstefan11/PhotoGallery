@@ -34,7 +34,6 @@ export default function Login() {
         email,
         password,
       });
-      console.log(result);
       if (result.status === 200) {
         router.push("/");
       } else if (result.status === 401 && result.error === "No user found!") {

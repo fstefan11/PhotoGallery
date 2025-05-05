@@ -16,15 +16,22 @@ import React, {
 } from "react";
 import { Bounce, toast, ToastContainer } from "react-toastify";
 import { motion } from "framer-motion";
+import ConfirmDeleteModal from "./confirmDeleteModalComponent";
 
 export default function PostPageComponent({ img }) {
   const [image, setImage] = useState(img);
   const [currentUserId, setCurrentUserId] = useState();
   const [optimisticLikes, setOptimisticLikes] = useOptimistic(image.likes);
+  const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
+  const [pendingDeleteCommentId, setPendingDeleteCommentId] = useState(null);
 
   const session = useSession();
 
-  if (session.data) if (!currentUserId) setCurrentUserId(session.data.user.id);
+  useEffect(() => {
+    if (session.data?.user?.id && !currentUserId) {
+      setCurrentUserId(session.data.user.id);
+    }
+  }, [session.data, currentUserId]);
 
   const handleLike = async () => {
     if (currentUserId) {
@@ -76,14 +83,14 @@ export default function PostPageComponent({ img }) {
 
   const handleDeleteComment = async (commentId) => {
     try {
+      setConfirmDeleteModal(false);
+      setPendingDeleteCommentId(null);
       const result = await deleteComment(commentId, image._id);
       if (result.success) {
         setImage((prev) => ({
           ...prev,
           comments: result.comments,
         }));
-      } else {
-        console.log("eroare");
       }
     } catch (error) {}
   };
@@ -166,7 +173,10 @@ export default function PostPageComponent({ img }) {
                 <p className="text-sm text-gray-700">{comment.text}</p>
                 {comment.user._id === currentUserId && (
                   <button
-                    onClick={() => handleDeleteComment(comment._id)}
+                    onClick={() => {
+                      setConfirmDeleteModal(true);
+                      setPendingDeleteCommentId(comment._id);
+                    }}
                     className="absolute top-0 right-0 mt-1 mr-1 text-red-500 hover:text-white hover:bg-red-500 rounded-full w-5 h-5 flex items-center justify-center invisible group-hover:visible transition-opacity duration-200"
                   >
                     <span className="text-sm leading-none">&times;</span>
@@ -175,6 +185,14 @@ export default function PostPageComponent({ img }) {
               </div>
             </div>
           ))}
+          {confirmDeleteModal && (
+            <ConfirmDeleteModal
+              handleDelete={() => handleDeleteComment(pendingDeleteCommentId)}
+              onCancel={() => setConfirmDeleteModal(false)}
+            >
+              Are you sure you want to delete this comment?
+            </ConfirmDeleteModal>
+          )}
         </div>
 
         {/* Add Comment */}
@@ -189,7 +207,7 @@ export default function PostPageComponent({ img }) {
             name="comment"
           />
           <button type="submit" className="text-blue-500 font-medium text-sm">
-            Postează
+            Post
           </button>
         </form>
       </div>

@@ -27,7 +27,9 @@ export default function DeleteImageButton({ imageId }) {
         <ConfirmDeleteModal
           handleDelete={handleDelete}
           onCancel={() => setShowConfirmModal(false)}
-        />
+        >
+          Are you sure you want to delete this post?
+        </ConfirmDeleteModal>
       )}
     </div>
   );
