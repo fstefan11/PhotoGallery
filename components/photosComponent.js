@@ -3,7 +3,7 @@
 import PostCard from "@/components/postCardComponent";
 import { getPhotos } from "@/lib/actions/photoActions";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useOptimistic, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export default function PhotosComponent() {
   const [images, setImages] = useState([]);

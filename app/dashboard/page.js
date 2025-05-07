@@ -66,6 +66,10 @@ export default async function Dashboard() {
       </div>
       <br />
       <br />
+      <div className="text-3xl">My albums</div>
+      <br />
+      <br />
+      <BlueButton>Create album</BlueButton>
     </div>
   );
 }

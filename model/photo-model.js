@@ -23,14 +23,6 @@ const photoSchema = new Schema(
       type: mongoose.Schema.Types.ObjectID,
       ref: "User",
     },
-    likes: [{ type: mongoose.Schema.Types.ObjectID, ref: "User" }],
-    comments: [
-      {
-        user: { type: mongoose.Schema.Types.ObjectID, ref: "User" },
-        text: String,
-        createdAt: { type: Date, default: Date.now },
-      },
-    ],
     isPublic: {
       required: true,
       type: Boolean,
@@ -39,6 +31,22 @@ const photoSchema = new Schema(
   },
   { timestamps: true }
 );
+
+photoSchema.virtual("likes", {
+  ref: "Like",
+  localField: "_id",
+  foreignField: "photoId",
+  justOne: false,
+});
+
+photoSchema.virtual("comments", {
+  ref: "Comment",
+  localField: "_id",
+  foreignField: "photoId",
+  justOne: false,
+});
+
+photoSchema.set("toJSON", { virtuals: true });
 
 export const Photo =
   mongoose.models.Photo ?? mongoose.model("Photo", photoSchema);
