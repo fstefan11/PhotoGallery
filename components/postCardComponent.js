@@ -6,7 +6,10 @@ import { Bounce, toast, ToastContainer } from "react-toastify";
 import { likePhoto } from "@/lib/actions/photoActions";
 
 export default function PostCard({ img, currentUserId }) {
-  const [image, setImage] = useState(img);
+  const [image, setImage] = useState({
+    ...img,
+    likes: img.likes.map((like) => like.userId),
+  });
   const [optimisticLikes, setOptimisticLikes] = useOptimistic(image.likes);
 
   const handleLike = async () => {

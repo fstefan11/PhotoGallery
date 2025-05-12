@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { postSchema } from "@/lib/validationSchema";
 import { z } from "zod";
 
-export default function ImageEditorComponent({ img }) {
+export default function ImageEditorComponent() {
   const cropperRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [formErrors, setFormErrors] = useState();

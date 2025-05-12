@@ -28,6 +28,11 @@ const photoSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    albumId: {
+      required: false,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Album",
+    },
   },
   { timestamps: true }
 );

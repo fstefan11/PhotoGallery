@@ -6,12 +6,15 @@ import { redirect } from "next/navigation";
 import BlueButton from "@/components/blueButtonComponent";
 import Link from "next/link";
 import { getPhotosByUsername } from "@/lib/actions/photoActions";
+import { getUserAlbums } from "@/lib/actions/albumActions";
+import AlbumCard from "@/components/album/albumCard";
 
 export default async function Dashboard() {
   const session = await getServerSession(authOptions);
   if (!session) {
     redirect("/login");
   }
+  const albums = (await getUserAlbums()).albums;
   const user = await getUserById(session.user.id);
   const profilePic = user.profilePic;
   const result = await getPhotosByUsername(user.userName);
@@ -69,7 +72,14 @@ export default async function Dashboard() {
       <div className="text-3xl">My albums</div>
       <br />
       <br />
-      <BlueButton>Create album</BlueButton>
+      <Link href={"/dashboard/createalbum"}>
+        <BlueButton>Create album</BlueButton>
+      </Link>
+      <br />
+      <br />
+      {albums.map((album) => (
+        <AlbumCard key={album.id} album={album} />
+      ))}
     </div>
   );
 }
