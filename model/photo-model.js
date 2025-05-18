@@ -23,10 +23,10 @@ const photoSchema = new Schema(
       type: mongoose.Schema.Types.ObjectID,
       ref: "User",
     },
-    isPublic: {
-      required: true,
-      type: Boolean,
-      default: true,
+    hashtags: {
+      required: false,
+      type: [String],
+      default: [],
     },
     albumId: {
       required: false,

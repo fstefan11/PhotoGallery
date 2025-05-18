@@ -4,7 +4,10 @@ import AlbumCard from "@/components/album/albumCard";
 import ImageSelectorButton from "@/components/album/imageSelectorButton";
 import BlueButton from "@/components/blueButtonComponent";
 import { createAlbum, getUserAlbums } from "@/lib/actions/albumActions";
-import { getUserPhotos } from "@/lib/actions/photoActions";
+import {
+  getPhotosWithoutAlbum,
+  getUserPhotos,
+} from "@/lib/actions/photoActions";
 import { albumSchema } from "@/lib/validationSchema";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -13,13 +16,12 @@ import { z } from "zod";
 export default function CreateAlbumPage() {
   const [formErrors, setFormErrors] = useState();
   const [images, setImages] = useState([]);
-  const [albums, setAlbums] = useState();
   const [selectedImages, setSelectedImages] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
     const loadImages = async () => {
-      const response = await getUserPhotos();
+      const response = await getPhotosWithoutAlbum();
       if (response.success) {
         setImages(response.photos);
       }
@@ -40,6 +42,7 @@ export default function CreateAlbumPage() {
       if (response.success) {
         router.push("/dashboard");
       }
+      console.log(response);
     } catch (e) {
       if (e instanceof z.ZodError) {
         const errors = e.errors.reduce((acc, err) => {
@@ -102,7 +105,7 @@ export default function CreateAlbumPage() {
               </div>
             ))}
         </div>
-        <button type="button" className="mb-6">
+        <button type="submit" className="mb-6">
           <BlueButton>Create album</BlueButton>
         </button>
       </form>

@@ -1,5 +1,6 @@
 "use client";
 
+import Spinner from "@/components/loading/spinner";
 import { loginSchema } from "@/lib/validationSchema";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -10,25 +11,19 @@ import { z } from "zod";
 
 export default function Login() {
   const [formErrors, setFormErrors] = useState();
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   async function handleSubmit(event) {
     event.preventDefault();
-
+    setLoading(true);
     try {
+      setFormErrors();
       const formData = new FormData(event.currentTarget);
       const email = formData.get("email");
       const password = formData.get("password");
-      try {
-        loginSchema.parse({ email, password });
-      } catch (e) {
-        if (e instanceof z.ZodError) {
-          const newErrors = e.errors.reduce((acc, err) => {
-            acc[err.path[0]] = err.message;
-            return acc;
-          }, {});
-          setFormErrors(newErrors);
-        }
-      }
+
+      loginSchema.parse({ email, password });
+
       const result = await signIn("credentials", {
         redirect: false,
         email,
@@ -36,19 +31,37 @@ export default function Login() {
       });
       if (result.status === 200) {
         router.push("/");
+        router.refresh();
       } else if (result.status === 401 && result.error === "No user found!") {
         setFormErrors((prevstate) => ({
           ...prevstate,
           login:
             "No account found with this email! Please sign up or try again.",
         }));
+      } else if (result.status === 401) {
+        setFormErrors((prevstate) => ({
+          ...prevstate,
+          login: "Invalid credentials. Please try again.",
+        }));
       }
-    } catch (e) {}
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        const newErrors = e.errors.reduce((acc, err) => {
+          acc[err.path[0]] = err.message;
+          return acc;
+        }, {});
+        setFormErrors(newErrors);
+      }
+    } finally {
+      setLoading(false);
+    }
   }
   return (
-    <div className="flex flex-col justify-center font-[sans-serif] mt-16">
-      <div className="max-w-md w-full mx-auto border border-gray-300 rounded-2xl p-8">
-        <div className="text-center mb-12">PhotoGallery</div>
+    <div className="flex flex-col justify-center">
+      <div className="w-full mx-auto max-w-md bg-white border border-gray-200 rounded-3xl shadow-lg p-10">
+        <h2 className="text-3xl font-bold text-center text-blue-600 mb-8">
+          PhotoGallery
+        </h2>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-6">
@@ -81,10 +94,11 @@ export default function Login() {
 
           <div className="!mt-8">
             <button
+              disabled={loading}
               type="submit"
-              className="w-full py-3 px-4 text-sm tracking-wider font-semibold rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
+              className="w-full flex justify-center items-center py-3 px-4 text-sm tracking-wider font-semibold rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
             >
-              Login
+              {loading ? <Spinner /> : "Login"}
             </button>
           </div>
           <p className="text-gray-800 text-sm mt-6 text-center">

@@ -1,13 +1,9 @@
 "use client";
 
-import BlueButton from "@/components/blueButtonComponent";
 import DeleteImageButton from "@/components/deleteImageButtonComponent";
 import LoadingModal from "@/components/loadingModalComponent";
-import {
-  deleteImageById,
-  editImageById,
-  getPhotoById,
-} from "@/lib/actions/photoActions";
+import { getUserAlbums } from "@/lib/actions/albumActions";
+import { editImageById, getPhotoById } from "@/lib/actions/photoActions";
 import { postSchema } from "@/lib/validationSchema";
 import React, { useEffect, useState } from "react";
 import { Bounce, toast, ToastContainer } from "react-toastify";
@@ -20,6 +16,17 @@ export default function EditImage({ params }) {
   const [loading, setLoading] = useState(true);
   const [formPending, setFormPending] = useState(false);
   const [formErrors, setFormErrors] = useState();
+  const [albums, setAlbums] = useState();
+
+  useEffect(() => {
+    const loadData = async () => {
+      const response = await getUserAlbums();
+      if (response.success) {
+        setAlbums(response.albums);
+      }
+    };
+    loadData();
+  }, []);
 
   const handleEdit = async (event) => {
     setFormErrors();
@@ -28,7 +35,12 @@ export default function EditImage({ params }) {
     const formData = new FormData(event.target);
     const title = formData.get("title");
     const description = formData.get("description");
-    if (title === image.title && description === image.description) {
+    const albumId = formData.get("album");
+    if (
+      title === image.title &&
+      description === image.description &&
+      albumId == image.albumId
+    ) {
       toast.error("No changes were made");
       setFormPending(false);
       return;
@@ -36,8 +48,9 @@ export default function EditImage({ params }) {
     try {
       postSchema.parse({ title, description });
       const data = {
-        title: formData.get("title"),
-        description: formData.get("description"),
+        title: title,
+        description: description,
+        albumId: albumId,
       };
       const response = await editImageById(slug, data);
       if (response.success) {
@@ -87,68 +100,106 @@ export default function EditImage({ params }) {
   }
 
   return (
-    <div>
-      <div className="flex justify-center h-[calc(100vh-145px)]">
+    <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="flex justify-center bg-gray-100 rounded-lg overflow-hidden border mb-8 h-[calc(100vh-300px)]">
         <img
           src={image.url}
           alt={image.title}
-          className="max-w-full max-h-full object-contain"
-        ></img>
+          className="object-contain max-h-full max-w-full"
+        />
       </div>
 
-      <div className="text-center mt-4 text-3xl">{image.title}</div>
-      <div className="text-center mt-4">{image.description}</div>
-      <br />
-      <br />
-      <form className="xl:flex-grow" onSubmit={handleEdit}>
-        <div>
-          <div className="text-red-500">{formErrors?.noChange}</div>
-          <div className="w-full mb-6">
-            <div className="text-red-500">{formErrors?.title}</div>
-            <label className="block mb-2">Title</label>
-            <input
-              name="title"
-              defaultValue={image.title}
-              type="text"
-              placeholder="Enter Title"
-              className="text-gray-800 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
-            />
-          </div>
-          <div className="w-full mb-6">
-            <div className="text-red-500">{formErrors?.description}</div>
-            <label className="block mb-2">Description</label>
-            <textarea
-              defaultValue={image.description}
-              name="description"
-              type="textarea"
-              placeholder="Enter Description"
-              className="text-gray-800 h-40 bg-white border border-gray-300 w-full text-sm px-4 py-3 rounded-md outline-blue-500"
-            />
-          </div>
+      <div className="text-center mb-10">
+        <h2 className="text-3xl font-semibold text-gray-800">{image.title}</h2>
+        {image.description && (
+          <p className="mt-2 text-gray-600 text-lg">{image.description}</p>
+        )}
+      </div>
+
+      <form
+        onSubmit={handleEdit}
+        className="bg-white shadow-lg rounded-xl p-8 border border-gray-100"
+      >
+        <h3 className="text-xl font-semibold mb-6 text-gray-800">
+          Edit Image Info
+        </h3>
+
+        {formErrors?.noChange && (
+          <div className="text-red-500 mb-4">{formErrors.noChange}</div>
+        )}
+
+        <div className="mb-6">
+          <label className="block text-gray-700 font-medium mb-2">Title</label>
+          <input
+            name="title"
+            defaultValue={image.title}
+            type="text"
+            placeholder="Enter Title"
+            className="w-full border border-gray-300 px-4 py-3 rounded-md text-gray-800 focus:outline-blue-500"
+          />
+          {formErrors?.title && (
+            <p className="text-red-500 text-sm mt-1">{formErrors.title}</p>
+          )}
         </div>
-        <button type="submit">
-          <BlueButton>Edit</BlueButton>
-        </button>
-        <LoadingModal isLoading={formPending} />
+
+        <div className="mb-6">
+          <label className="block text-gray-700 font-medium mb-2">
+            Description
+          </label>
+          <textarea
+            name="description"
+            defaultValue={image.description}
+            placeholder="Enter Description"
+            className="w-full border border-gray-300 px-4 py-3 rounded-md text-gray-800 h-32 resize-none focus:outline-blue-500"
+          />
+          {formErrors?.description && (
+            <p className="text-red-500 text-sm mt-1">
+              {formErrors.description}
+            </p>
+          )}
+        </div>
+
+        <div className="mb-6">
+          <select
+            id="album"
+            name="album"
+            defaultValue={image.albumId?._id || ""}
+            className="w-full border border-gray-300 px-4 py-3 rounded-md text-gray-800 bg-white focus:outline-blue-500"
+          >
+            <option value="">No Album</option>
+            {albums &&
+              albums.map((album) => (
+                <option key={album.id} value={album.id}>
+                  {album.title}
+                </option>
+              ))}
+          </select>
+        </div>
+
+        <div className="flex justify-between items-center">
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-6 py-2 rounded-md font-medium hover:bg-blue-700 transition"
+          >
+            Save Changes
+          </button>
+          <LoadingModal isLoading={formPending} />
+        </div>
       </form>
-      <br />
-      <br />
-      <DeleteImageButton imageId={image._id} />
-      <br />
-      <br />
+
+      <div className="mt-8 flex justify-end">
+        <DeleteImageButton imageId={image._id} />
+      </div>
+
       <ToastContainer
         position="top-left"
         autoClose={3000}
         hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick={false}
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
+        closeOnClick
         pauseOnHover
         theme="light"
         transition={Bounce}
-        toastClassName="text-lg"
+        toastClassName="text-sm"
       />
     </div>
   );

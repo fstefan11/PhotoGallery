@@ -38,20 +38,21 @@ export const authOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
+        token.id = user._id.toString();
       }
       return token;
     },
     async session({ session, token }) {
       await dbConnect();
-      const user = await User.findOne({ email: session.user.email });
+      const user = await User.findById(token.id);
       if (!user) {
         throw new Error("User no longer exists");
       }
       if (token) {
-        session.user.id = token.id;
+        session.user.id = user._id.toString();
         session.user.userName = user.userName;
         session.user.profilePic = user.profilePic;
+        session.user.role = user.role;
       }
       return session;
     },

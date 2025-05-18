@@ -1,5 +1,6 @@
 "use client";
 
+import LoadingModal from "@/components/loadingModalComponent";
 import ImageComponent from "@/components/postPageComponent";
 import Providers from "@/components/providersComponent";
 import { getPhotoById } from "@/lib/actions/photoActions";
@@ -22,7 +23,7 @@ export default function Image({ params }) {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingModal isLoading={loading} />;
   }
   if (!image) {
     return <div>Image not found!</div>;

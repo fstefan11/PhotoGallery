@@ -3,6 +3,7 @@
 import {
   addComment,
   deleteComment,
+  deleteImageById,
   getPhotoById,
   likePhoto,
 } from "@/lib/actions/photoActions";
@@ -17,21 +18,26 @@ import React, {
 import { Bounce, toast, ToastContainer } from "react-toastify";
 import { motion } from "framer-motion";
 import ConfirmDeleteModal from "./confirmDeleteModalComponent";
+import Link from "next/link";
+import LoadingModal from "./loadingModalComponent";
+import { useRouter } from "next/navigation";
 
 export default function PostPageComponent({ img }) {
   const [image, setImage] = useState(img);
   const [currentUserId, setCurrentUserId] = useState();
   const [optimisticLikes, setOptimisticLikes] = useOptimistic(image.likes);
   const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
+  const [confirmDeletePostModal, setConfirmDeletePostModal] = useState(false);
   const [pendingDeleteCommentId, setPendingDeleteCommentId] = useState(null);
-
+  const [loading, setLoading] = useState(true);
   const session = useSession();
+  const router = useRouter();
 
-  useEffect(() => {
-    if (session.data?.user?.id && !currentUserId) {
-      setCurrentUserId(session.data.user.id);
-    }
-  }, [session.data, currentUserId]);
+  const formattedDate = new Date(image.createdAt).toLocaleDateString("ro-RO", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 
   const handleLike = async () => {
     if (currentUserId) {
@@ -95,122 +101,187 @@ export default function PostPageComponent({ img }) {
     } catch (error) {}
   };
 
-  if (!image) return <div>Image not found</div>;
+  const handleDeletePost = async () => {
+    try {
+      if (session?.data?.user?.role == "admin") {
+        setLoading(true);
+        const response = await deleteImageById(image._id);
+        if (response.success) {
+          router.push("/photos");
+        }
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
+  useEffect(() => {
+    if (session.data?.user?.id && !currentUserId) {
+      setCurrentUserId(session.data.user.id);
+    }
+    setLoading(false);
+  }, [session.data, currentUserId]);
+
+  if (!image) return <div>Image not found</div>;
+  if (loading) return <LoadingModal isLoading={loading} />;
   return (
-    <div className="w-full max-w-full bg-white rounded-lg shadow-md overflow-hidden mb-8">
-      {/* Post Header */}
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center space-x-3">
-          <img
-            src={image.userId.profilePic}
-            alt="User profile"
-            className="w-10 h-10 rounded-full object-cover border border-gray-200"
-          />
-          <div>
-            <h3 className="font-semibold text-gray-800">
-              {image.userId.userName}
-            </h3>
+    <div className="w-full max-w-4xl bg-white rounded-xl shadow-md overflow-hidden mb-12 mx-auto border border-gray-200">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-100">
+        <div>
+          <div className="flex items-center space-x-3">
+            <img
+              src={image.userId.profilePic}
+              alt="User profile"
+              className="w-10 h-10 rounded-full object-cover border border-gray-300"
+            />
+            <div>
+              <h3 className="font-semibold text-gray-800">
+                {image.userId.userName}
+              </h3>
+              <p className="text-xs text-gray-500">{formattedDate}</p>
+            </div>
           </div>
+          {image.albumId && (
+            <Link
+              href={`/users/${image.userId.userName}/albums/${image.albumId._id}`}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Album: {image.albumId.name}
+            </Link>
+          )}
         </div>
+
+        {image.userId._id === currentUserId && (
+          <Link
+            href={`/dashboard/editimage/${image._id}`}
+            className="text-blue-500 hover:text-blue-700 text-sm font-medium"
+          >
+            Edit
+          </Link>
+        )}
+        {session?.data?.user?.role == "admin" && (
+          <>
+            <button
+              type="button"
+              href={`/dashboard/editimage/${image._id}`}
+              className="text-red-500 hover:text-red-700 text-sm font-medium"
+              onClick={() => setConfirmDeletePostModal(true)}
+            >
+              Delete
+            </button>
+            {confirmDeletePostModal && (
+              <ConfirmDeleteModal
+                handleDelete={handleDeletePost}
+                onCancel={() => setConfirmDeletePostModal(false)}
+              >
+                Are you sure do you want to delete this post?
+              </ConfirmDeleteModal>
+            )}
+          </>
+        )}
       </div>
 
-      {/* Post Title */}
-      <h2 className="px-4 pb-2 text-xl font-bold text-gray-900">
-        {image.title}
-      </h2>
+      {/* Title & Description */}
+      <div className="px-4 pt-4">
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">{image.title}</h2>
+        <p className="text-gray-700 mb-4">{image.description}</p>
+      </div>
 
-      {/* Post Description */}
-      <p className="px-4 pb-3 text-gray-700">{image.description}</p>
-
-      {/* Post Image - Full screen height and width */}
-      <div className="w-full h-screen max-h-screen">
+      {/* Image */}
+      <div className="w-full max-h-[80vh] overflow-hidden">
         <img
           src={image.url}
-          alt="Mountain landscape"
-          className="w-full h-full object-cover"
+          alt={image.title}
+          className="w-full h-full object-cover object-center"
         />
       </div>
 
-      {/* Post Actions */}
-      <div className="px-4 py-3 flex justify-between border-b">
-        <div className="flex space-x-4">
+      {/* Like & Comment */}
+      <div className="px-4 py-3 flex justify-between border-t border-gray-100">
+        <div className="flex space-x-6">
           <motion.button
             onClick={handleLike}
             className="flex items-center text-gray-500 hover:text-red-500"
-            whileTap={{ scale: 1.3 }}
+            whileTap={{ scale: 1.2 }}
           >
             {optimisticLikes.includes(currentUserId) ? (
-              <Heart fill="red" className="border-red-500" />
+              <Heart fill="red" className="w-5 h-5" />
             ) : (
-              <Heart />
+              <Heart className="w-5 h-5" />
             )}
-
             <span className="ml-1">{optimisticLikes.length}</span>
           </motion.button>
           <button className="flex items-center text-gray-500 hover:text-blue-500">
-            <MessageCircle />
-            <span className="ml-1"></span>
+            <MessageCircle className="w-5 h-5" />
+            <span className="ml-1">{image.comments.length}</span>
           </button>
         </div>
       </div>
 
-      {/* Comments Section */}
-      <div className="px-4 py-2">
-        <div className="mb-2">
-          {image.comments.map((comment) => (
-            <div
-              key={comment._id}
-              className="flex items-start space-x-2 mb-2 group"
-            >
-              <img
-                src={comment.user.profilePic}
-                alt="User profile"
-                className="w-6 h-6 rounded-full object-cover"
-              />
-              <div className="bg-gray-100 px-3 py-2 rounded-lg max-w-xs relative">
-                <p className="text-sm font-medium">{comment.user.userName}</p>
-                <p className="text-sm text-gray-700">{comment.text}</p>
-                {comment.user._id === currentUserId && (
-                  <button
-                    onClick={() => {
-                      setConfirmDeleteModal(true);
-                      setPendingDeleteCommentId(comment._id);
-                    }}
-                    className="absolute top-0 right-0 mt-1 mr-1 text-red-500 hover:text-white hover:bg-red-500 rounded-full w-5 h-5 flex items-center justify-center invisible group-hover:visible transition-opacity duration-200"
-                  >
-                    <span className="text-sm leading-none">&times;</span>
-                  </button>
-                )}
-              </div>
+      {/* Comments */}
+      <div className="px-4 py-4">
+        <h4 className="text-gray-800 font-medium mb-2">Comments</h4>
+        {image.comments.map((comment) => (
+          <div
+            key={comment._id}
+            className="flex items-start space-x-3 mb-3 group"
+          >
+            <img
+              src={comment.user.profilePic}
+              alt={comment.user.userName}
+              className="w-8 h-8 rounded-full object-cover"
+            />
+            <div className="bg-gray-100 px-3 py-2 rounded-lg max-w-lg relative">
+              <p className="text-sm font-semibold text-gray-800">
+                {comment.user.userName}
+              </p>
+              <p className="text-sm text-gray-700">{comment.text}</p>
+              {(comment.user._id === currentUserId ||
+                session?.data?.user?.role == "admin") && (
+                <button
+                  onClick={() => {
+                    setConfirmDeleteModal(true);
+                    setPendingDeleteCommentId(comment._id);
+                  }}
+                  className="absolute top-1 right-1 text-red-500 hover:text-white hover:bg-red-500 rounded-full w-5 h-5 flex items-center justify-center invisible group-hover:visible transition duration-200"
+                >
+                  &times;
+                </button>
+              )}
             </div>
-          ))}
-          {confirmDeleteModal && (
-            <ConfirmDeleteModal
-              handleDelete={() => handleDeleteComment(pendingDeleteCommentId)}
-              onCancel={() => setConfirmDeleteModal(false)}
-            >
-              Are you sure you want to delete this comment?
-            </ConfirmDeleteModal>
-          )}
-        </div>
+          </div>
+        ))}
+        {confirmDeleteModal && (
+          <ConfirmDeleteModal
+            handleDelete={() => handleDeleteComment(pendingDeleteCommentId)}
+            onCancel={() => setConfirmDeleteModal(false)}
+          >
+            Are you sure you want to delete this comment?
+          </ConfirmDeleteModal>
+        )}
 
         {/* Add Comment */}
         <form
           onSubmit={submitComment}
-          className="flex items-center pt-2 border-t"
+          className="flex items-center pt-4 border-t mt-4"
         >
           <input
             type="text"
             placeholder="Add a comment..."
-            className="flex-1 text-sm outline-none bg-transparent"
             name="comment"
+            className="flex-1 text-sm px-3 py-2 border rounded-md outline-none"
           />
-          <button type="submit" className="text-blue-500 font-medium text-sm">
+          <button
+            type="submit"
+            className="ml-2 text-blue-600 font-medium text-sm"
+          >
             Post
           </button>
         </form>
       </div>
+
+      {/* Toasts */}
       <ToastContainer
         position="top-left"
         autoClose={3000}
@@ -223,7 +294,7 @@ export default function PostPageComponent({ img }) {
         pauseOnHover
         theme="light"
         transition={Bounce}
-        toastClassName="text-lg"
+        toastClassName="text-sm"
       />
     </div>
   );

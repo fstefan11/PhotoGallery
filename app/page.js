@@ -1,7 +1,10 @@
 import BlueButton from "@/components/blueButtonComponent";
+import { getServerSession } from "next-auth";
 import Link from "next/link";
+import { authOptions } from "./api/auth/[...nextauth]/route";
 
 export default async function Home() {
+  const session = await getServerSession(authOptions);
   return (
     <div>
       <div className="text-center p-6">
@@ -31,7 +34,7 @@ export default async function Home() {
                 likes.
               </p>
               <div className="mt-8">
-                <Link href={"/register"}>
+                <Link href={session?.user ? "/photos" : "/register"}>
                   <BlueButton>Start Exploring</BlueButton>
                 </Link>
               </div>

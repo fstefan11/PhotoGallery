@@ -14,6 +14,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   async function handleSubmit(event) {
     setLoading(true);
+    setFormErrors();
     event.preventDefault();
     try {
       const formData = new FormData(event.currentTarget);
@@ -67,9 +68,11 @@ export default function Register() {
     }
   }
   return (
-    <div className="flex flex-col justify-center font-[sans-serif] mt-16">
-      <div className="max-w-md w-full mx-auto border border-gray-300 rounded-2xl p-8">
-        <div className="text-center mb-12">PhotoGallery</div>
+    <div className="flex flex-col justify-center">
+      <div className="w-full mx-auto max-w-md bg-white border border-gray-200 rounded-3xl shadow-lg p-10">
+        <h2 className="text-3xl font-bold text-center text-blue-600 mb-8">
+          PhotoGallery
+        </h2>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-6">
