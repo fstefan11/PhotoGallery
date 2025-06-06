@@ -16,8 +16,8 @@ export default function ProfilePicture({ user, profilePicUrl }) {
   return (
     <div className="flex flex-col items-center gap-8">
       <div className="relative w-96 h-96 overflow-hidden rounded-full border-4 border-gray-300 shadow-lg">
-        {profilePic ? (
-          <CldImage
+        {profilePic && (
+          <img
             key={profilePic}
             src={profilePic}
             alt="Profile picture"
@@ -26,13 +26,6 @@ export default function ProfilePicture({ user, profilePicUrl }) {
             height={500}
             className="object-cover w-full h-full"
           />
-        ) : (
-          <Image
-            src="/noprofilepic.webp"
-            width={500}
-            height={500}
-            alt="Profile picture"
-          ></Image>
         )}
       </div>
       <div className="">

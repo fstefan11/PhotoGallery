@@ -3,6 +3,8 @@ import "./globals.css";
 import Header from "@/components/headerComponent";
 import { dbConnect } from "@/lib/mongo";
 import Providers from "@/components/providersComponent";
+import { getServerSession } from "next-auth";
+import { authOptions } from "./api/auth/[...nextauth]/route";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,13 +23,14 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }) {
+  const session = await getServerSession(authOptions);
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <Header />
+          <Header session={session} />
         </Providers>
         <div className="container mx-auto mt-20">{children}</div>
       </body>

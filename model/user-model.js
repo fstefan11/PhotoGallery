@@ -25,8 +25,7 @@ const userSchema = new Schema(
     profilePic: {
       required: false,
       type: String,
-      default:
-        "https://res.cloudinary.com/dlx12oci6/image/upload/v1740140877/blank-profile-picture-973460_1280_hpkm8e.webp",
+      default: "/noprofilepic.webp",
     },
   },
   { timestamps: true }

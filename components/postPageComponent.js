@@ -120,7 +120,7 @@ export default function PostPageComponent({ img }) {
       setCurrentUserId(session.data.user.id);
     }
     setLoading(false);
-  }, [session.data, currentUserId]);
+  }, [session.data]);
 
   if (!image) return <div>Image not found</div>;
   if (loading) return <LoadingModal isLoading={loading} />;
